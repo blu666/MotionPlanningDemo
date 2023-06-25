@@ -22,7 +22,6 @@ class RRTTree(object):
         min_dist = min(dists)
         min_id = dists.index(min_dist)
         return min_id, self.vertices[min_id], min_dist
-        # return self.vertices[min_id], min_dist
     
 
     def getKNN(self, state, k):
@@ -40,7 +39,6 @@ class RRTTree(object):
         knnDists = [dists[i] for i in knnIDs]
         knnVertices = [self.vertices[i] for i in knnIDs]
         return knnIDs, knnVertices, knnDists
-        # return knnVertices, knnDists
     
 
     def addVertex(self, state):
@@ -60,5 +58,4 @@ class RRTTree(object):
         @param state2: the state of the second vertex
         '''
         self.edges[state1].append(state2)
-        # self.edges[state2].append(state1)
         self.parents[state2] = state1

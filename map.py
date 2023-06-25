@@ -5,7 +5,6 @@ from matplotlib.patches import Rectangle
 
 class Map:
     def __init__(self, file, start, goal):
-
         self.grid = np.loadtxt(file, dtype=np.int8)
         self.xlim = [0, self.grid.shape[1]-1]
         self.ylim = [0, self.grid.shape[0]-1]
@@ -18,13 +17,13 @@ class Map:
         if self.checkState(self.goal) == False:
             raise Exception('Goal state is not valid!')
         
-        # fig, ax = plt.subplots()
-        # self.plotMap(ax)
-        # plt.show()
         print('Map initialized.')
     
-    # check if a state is valid (i.e. not out of bounds and not an obstacle)
     def checkState(self, state):
+        '''
+        Check if a state is valid (i.e. not out of bounds and not an obstacle).
+        @param state: the state to be checked
+        '''
         if state[0] < self.xlim[0] or state[0] > self.xlim[1] or state[1] < self.ylim[0] or state[1] > self.ylim[1]:
             return False
         elif self.grid[state[1], state[0]] == 1:
@@ -32,8 +31,12 @@ class Map:
         else:
             return True
     
-    # plot the map with the start and goal states
+    
     def plotMap(self, ax):
+        '''
+        Plot the map with the start and goal states.
+        @param ax: the matplotlib axis object
+        '''
         cmap = colors.ListedColormap(['white', 'dimgray'])
         
         ax.imshow(self.grid, cmap=cmap, interpolation='nearest')
@@ -49,8 +52,13 @@ class Map:
         ax.add_patch(goal_patch)
 
 
-    # plot the planned path
+    
     def plotPath(self, ax, path):
+        '''
+        Plot the planned path with line connecting adjacent states.
+        @param ax: the matplotlib axis object
+        @param path: the planned path
+        '''
         lastState = self.start
         for state in path[1:-1]:
             patch = Rectangle((state[0]-0.5, state[1]-0.5), 1, 1, color='c')

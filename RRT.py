@@ -13,13 +13,16 @@ class RRTPlanner(object):
         self.goal = goal
         self.tree = RRTTree()
         self.startID = self.tree.addVertex(start)
-        # self.goalID = self.tree.addVertex(goal)
 
         self.maxiter = maxiter
         self.stepsize = stepsize
         self.planned_path = [] # final planned path
 
     def plan(self):
+        '''
+        Plan the path from start to goal by sampling random states and extending the tree towards them.
+        '''
+
         goalReached = False
         for i in range(self.maxiter):
             # sample a random state
@@ -46,6 +49,10 @@ class RRTPlanner(object):
             return True
 
     def sampleState(self):
+        '''
+        Sample a random state within the map. 
+        Repeat sampling until we find a valid state that's not currently in the RRT tree.
+        '''
         while True:
             rand_x = np.random.randint(self.map.xlim[0], self.map.xlim[1]+1)
             rand_y = np.random.randint(self.map.ylim[0], self.map.ylim[1]+1)
@@ -56,36 +63,26 @@ class RRTPlanner(object):
     
 
     def extend(self, nearestID, nearestVertex, nearestDist, randState):
+        '''
+        Extend the tree from the nearest vertex towards the random state.
+        @param nearestID: the ID of the nearest vertex
+        @param nearestVertex: the nearest vertex
+        @param nearestDist: the distance between the nearest vertex and the random state
+        @param randState: the random state
+        '''
         if nearestDist < self.stepsize:
             newState = randState
-            # unitVec = (randState[0] - nearestVertex[0], randState[1] - nearestVertex[1])
-            # unitVec = unitVec / np.linalg.norm(unitVec)
         else:
-            # compute the unit vector towards the random state
-            # unitVec = (randState[0] - nearestVertex[0], randState[1] - nearestVertex[1])
-            # unitVec = unitVec / np.linalg.norm(unitVec)
-
-            # compute the new state by extending a step towards the random state, 
-            # and use ceiling to make sure the new state is on the grid
-            # newState = (nearestVertex[0] + int(self.stepsize*unitVec[0]), nearestVertex[1] + int(self.stepsize*unitVec[1]))
+            # if randState is further away than 1 unit, compute the new state in that direction
             direction = [randState[0] - nearestVertex[0], randState[1] - nearestVertex[1]]
             direction = np.clip(direction, -1, 1)
             newState = list(nearestVertex) + direction
-
-            
-            # direction[0] = max(direction[0], 1)
-            # direction[1] = max(direction[1], 1)
             newState = tuple(newState)
         
-        # check if the new state is valid
-        # print(nearestVertex, unitVec, newState)
-        # for i in range(1, self.stepsize+1):
-            # interState = (int(nearestVertex[0] + i*unitVec[0]), int(nearestVertex[1] + i*unitVec[1]))
+            # check if the new state is valid
             if not self.map.checkState(newState):
-                print(newState)
                 return -1, None
         
-        # if self.map.checkState(newState):
         # add the new state to the tree
         newID = self.tree.addVertex(newState)
         self.tree.addEdge(nearestVertex, newState)
@@ -93,20 +90,33 @@ class RRTPlanner(object):
 
 
     def plotMap(self):
+        '''
+        Plot the map with start and goal states.
+        '''
         fig, ax = plt.subplots()
         self.map.plotMap(ax)
         plt.show()
 
 
-    def plotPath(self, path):
+    def plotPath(self, path, plotTree=True):
+        '''
+        Plot the map with planned path. 
+        @param path: the planned path
+        @param plotTree: if True, plot the RRT tree with all vertices and edges
+        '''
         fig, ax = plt.subplots()
         self.map.plotMap(ax)
-        self.plotTree(ax)
+        if plotTree:
+            self.plotTree(ax)
         self.map.plotPath(ax, path)
         plt.show()
 
     
     def plotTree(self, ax):
+        '''
+        Plot the RRT tree with all vertices and edges.
+        @param ax: the matplotlib axis object
+        '''
         for v in self.tree.vertices:
             patch = Rectangle((v[0]-0.5, v[1]-0.5), 1, 1, color='paleturquoise')
             ax.add_patch(patch)
