@@ -51,6 +51,11 @@ class Map:
 
     # plot the planned path
     def plotPath(self, ax, path):
+        lastState = self.start
         for state in path[1:-1]:
             patch = Rectangle((state[0]-0.5, state[1]-0.5), 1, 1, color='c')
             ax.add_patch(patch)
+            ax.plot([lastState[0], state[0]], [lastState[1], state[1]], 'lightcoral')
+            lastState = state
+        state = self.goal
+        ax.plot([lastState[0], state[0]], [lastState[1], state[1]], 'lightcoral')

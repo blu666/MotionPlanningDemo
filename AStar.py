@@ -2,8 +2,9 @@ import numpy as np
 import matplotlib.pyplot as plt
 from map import Map
 import heapq
+from utils import *
 
-class AStarPlanner:
+class AStarPlanner(object):
     def __init__(self, mapfile, start, goal):
         self.map = Map(mapfile, start, goal) # initialize the Map object
         self.start = start
@@ -36,7 +37,7 @@ class AStarPlanner:
                         self.parents[neighbor] = curr[1]
                         return True
                     
-                    new_cost_g = self.cost_so_far[curr[1]] + self.euclidean_dist(curr[1], neighbor) # compute new g-cost
+                    new_cost_g = self.cost_so_far[curr[1]] + computeEuclideanDist(curr[1], neighbor) # compute new g-cost
                     # skip if the neighbor is already in the open list with a lower g-cost
                     if neighbor in self.cost_so_far and new_cost_g >= self.cost_so_far[neighbor]: 
                         continue
@@ -68,9 +69,6 @@ class AStarPlanner:
             print('No path found!')
             return False
 
-    # calculate the euclidean distance between two states                                
-    def euclidean_dist(self, a, b):
-        return np.sqrt((a[0] - b[0])**2 + (a[1] - b[1])**2)
 
     # calculate the heuristic distance (Manhattan distance) between two states
     def heuristic_dist(self, a, b):
