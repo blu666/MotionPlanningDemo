@@ -27,19 +27,22 @@ class RRTStarPlanner(object):
         for i in range(self.maxiter):
             # sample a random state
             randState = self.sampleState()
-            # find the nearest vertex
-            nearestID, nearestVertex, nearestDist = self.tree.getNearestVertex(randState)
-            # expand the tree towards the random state
-            newID, newState = self.extend(nearestID, nearestVertex, nearestDist, randState)
 
+            # check if newState is already in the tree
+            # if so, we can skip the extend step and try to find shorter path
+            if randState and randState in self.tree.vertices:
+                newId = self.tree.vertices.index(randState)
+                newState = randState
+            else:
+                # find the nearest vertex
+                nearestID, nearestVertex, nearestDist = self.tree.getNearestVertex(randState)
+                # expand the tree towards the random state
+                newID, newState = self.extend(nearestID, nearestVertex, nearestDist, randState)
+            
             # reconnect the tree if the new state present shorter path
             if newID != -1:
                 kNNIDs, kNNVertices, kNNDists = self.tree.getKNN(newState, 8)
                 for j in range(len(kNNVertices)):
-                    # First check if path between new state and kNNVertices[j] is valid
-
-
-
 
                     if self.tree.costs[kNNVertices[j]] + kNNDists[j] < self.tree.costs[newState]:
                         self.tree.addEdge(kNNVertices[j], newState)
@@ -71,13 +74,11 @@ class RRTStarPlanner(object):
     def sampleState(self):
         '''
         Sample a random state within the map. 
-        Repeat sampling until we find a valid state that's not currently in the RRT tree.
+        Repeat sampling until we find a valid state (we allow sampling a state already in the tree in order to shorten path).
         '''
         while True:
             rand_x = np.random.randint(self.map.xlim[0], self.map.xlim[1]+1)
             rand_y = np.random.randint(self.map.ylim[0], self.map.ylim[1]+1)
-            if (rand_x, rand_y) in self.tree.vertices:
-                continue
             if self.map.checkState((rand_x, rand_y)):
                 return (rand_x, rand_y)
     
@@ -149,9 +150,14 @@ if __name__ == '__main__':
     mapfile = 'map2.txt'
     start = (0, 0)
     goal = (13, 14)
-    planner = RRTStarPlanner(mapfile, start, goal, maxiter=2000, stepsize=1)
-    # planner.plotMap()
+    planner = RRTStarPlanner(mapfile, start, goal, maxiter=1000, stepsize=1)
+    
     planner.plan()
     print(planner.planned_path)
-    planner.plotPath(planner.planned_path)
-    # planner.plotTree()
+    if planner.planned_path:
+        planner.plotPath(planner.planned_path)
+    else:
+        fig, ax = plt.subplots()
+        planner.map.plotMap(ax)
+        planner.plotTree(ax)
+        plt.show()
