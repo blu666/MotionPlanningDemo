@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 from matplotlib.patches import Rectangle
 from utils import *
 
-class RRTPlanner(object):
+class RRTStarPlanner(object):
     def __init__(self, mapfile, start, goal, maxiter=200, stepsize=1.5):
         self.map = Map(mapfile, start, goal) # initialize the Map object
         self.start = start
@@ -31,12 +31,32 @@ class RRTPlanner(object):
             nearestID, nearestVertex, nearestDist = self.tree.getNearestVertex(randState)
             # expand the tree towards the random state
             newID, newState = self.extend(nearestID, nearestVertex, nearestDist, randState)
+
+            # reconnect the tree if the new state present shorter path
+            if newID != -1:
+                kNNIDs, kNNVertices, kNNDists = self.tree.getKNN(newState, 8)
+                for j in range(len(kNNVertices)):
+                    # First check if path between new state and kNNVertices[j] is valid
+
+
+
+
+                    if self.tree.costs[kNNVertices[j]] + kNNDists[j] < self.tree.costs[newState]:
+                        self.tree.addEdge(kNNVertices[j], newState)
+                        self.tree.costs[newState] = self.tree.costs[kNNVertices[j]] + kNNDists[j]
+                        self.tree.parents[newState] = kNNVertices[j]
+                    elif self.tree.costs[kNNVertices[j]] > self.tree.costs[newState] + kNNDists[j]:
+                        self.tree.addEdge(newState, kNNVertices[j])
+                        self.tree.costs[kNNVertices[j]] = self.tree.costs[newState] + kNNDists[j]
+                        self.tree.parents[kNNVertices[j]] = newState
+
+
             # check if the goal is reached
             if self.goal == newState:
                 goalReached = True
                 print('Goal reached!')
                 print(i, len(self.tree.vertices))
-                break
+                # break
         
         if goalReached:
             # trace the path from goal to start
@@ -129,7 +149,7 @@ if __name__ == '__main__':
     mapfile = 'map2.txt'
     start = (0, 0)
     goal = (13, 14)
-    planner = RRTPlanner(mapfile, start, goal, maxiter=800, stepsize=1)
+    planner = RRTStarPlanner(mapfile, start, goal, maxiter=2000, stepsize=1)
     # planner.plotMap()
     planner.plan()
     print(planner.planned_path)

@@ -8,6 +8,7 @@ class RRTTree(object):
         self.vertices = []
         self.edges = dict()
         self.parents = dict()
+        self.costs = dict()
 
     
     def getNearestVertex(self, state):
@@ -35,7 +36,10 @@ class RRTTree(object):
         for v in self.vertices:
             dists.append(computeEuclideanDist(state, v))
         
-        knnIDs = np.argpartition(dists, k)
+        IDs = np.argpartition(dists, min(len(self.vertices)-1, k))
+        # only select immediately adjacent vertices
+        knnIDs = [IDs[i] for i in range(len(IDs)) if dists[IDs[i]] <= 1.7]
+
         knnDists = [dists[i] for i in knnIDs]
         knnVertices = [self.vertices[i] for i in knnIDs]
         return knnIDs, knnVertices, knnDists
@@ -59,3 +63,4 @@ class RRTTree(object):
         '''
         self.edges[state1].append(state2)
         self.parents[state2] = state1
+        self.costs[state2] = self.costs[state1] + computeEuclideanDist(state1, state2)
